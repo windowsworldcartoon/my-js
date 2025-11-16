@@ -1,4 +1,7 @@
-import Extension from '@windowsworldcartoon/codeinspector-extension-handler';
+import extensionModule from '@windowsworldcartoon/codeinspector-extension-handler';
+
+// Handle both default and named exports
+const Extension = extensionModule?.default || extensionModule;
 
 class MyJsExtension extends Extension {
   constructor({ api, config, extensionPath }) {
@@ -38,6 +41,7 @@ class MyJsExtension extends Extension {
       ]
     });
 
+    console.log(`${this.name} fully activated`);
   }
 
   deactivate() {
