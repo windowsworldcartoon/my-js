@@ -1,9 +1,13 @@
 {
+  "$schema": "https://code-api-xljw.onrender.com/api/schema",
   "id": "my-js",
   "name": "my-js",
   "version": "1.0.0",
   "description": "my-js extension for CodeInspector",
   "author": "windowsworldcartoon",
   "main": "index.js",
-  "repo": "https://github.com/windowsworldcartoon/my-js"
+  "repository": "https://github.com/windowsworldcartoon/my-js.git",
+  "engines": {
+    "codeinspector": ">=1.0.0"
+  }
 }
