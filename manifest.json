@@ -5,9 +5,11 @@
   "version": "1.0.0",
   "description": "my-js extension for CodeInspector",
   "author": "windowsworldcartoon",
+  "license": "MIT",
   "main": "index.js",
   "repository": "https://github.com/windowsworldcartoon/my-js.git",
   "engines": {
     "codeinspector": ">=1.0.0"
-  }
+  },
+  "icon": "icon.svg"
 }
