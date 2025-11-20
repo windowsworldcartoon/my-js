@@ -132,7 +132,7 @@ class MyJSExtension {
     registerCommand(this.context, 'my-js.helloWorld', async (args) => {
       console.log('[my-js] helloWorld command executed', args);
       this.updateState('helloWorld');
-      showNotification(this.context, 'Hello from JavaScript Extension!', 'info');
+      showNotification(this.context, 'my-js', 'Hello from JavaScript Extension!', 'info');
       return { success: true, message: 'Hello World executed' };
     });
 
@@ -146,7 +146,7 @@ class MyJSExtension {
       // Simulate formatting
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      showNotification(this.context, 'Code formatted successfully', 'info');
+      showNotification(this.context, 'my-js', 'Code formatted successfully', 'info');
       return { success: true, message: 'Code formatted' };
     });
 
@@ -162,7 +162,7 @@ class MyJSExtension {
         timestamp: new Date().toISOString()
       };
       
-      showNotification(this.context, `Analysis Complete: ${analysis.issues} issues, ${analysis.warnings} warnings`, 'info');
+      showNotification(this.context, 'my-js', `Analysis Complete: ${analysis.issues} issues, ${analysis.warnings} warnings`, 'info');
       return { success: true, data: analysis };
     });
 
@@ -176,7 +176,7 @@ class MyJSExtension {
       // Simulate generation
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      showNotification(this.context, 'Documentation generated successfully', 'info');
+      showNotification(this.context, 'my-js', 'Documentation generated successfully', 'info');
       return { success: true, message: 'Documentation created' };
     });
   }
@@ -294,7 +294,7 @@ class MyJSExtension {
     };
     
     const message = messages[selectedItem.value] || 'Action selected';
-    showNotification(this.context, message, 'info');
+    showNotification(this.context, 'my-js', message, 'info');
   }
 
   deactivate() {

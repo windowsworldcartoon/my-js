@@ -2,7 +2,7 @@
   "$schema": "https://code-api-xljw.onrender.com/api/schema",
   "id": "my-js",
   "name": "my-js",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "my-js extension for CodeInspector",
   "author": "windowsworldcartoon",
   "license": "MIT",
