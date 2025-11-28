@@ -1,309 +1,151 @@
-import {
-  createExtensionContext,
-  registerCommand,
-  registerMenu,
-  registerCommandMenu,
-  executeCommand,
-  showNotification,
-  showProgress,
-  registerWebview,
-  updateWebview,
-  registerActivityBar,
-  removeWebview,
-  showQuickPick,
-  getSystemInfo,
-} from '@windowsworldcartoon/codeinspector-extension-handler';
+import * as code from '@codeinspector/extension-handler'
+import path from 'path';
+import fs from 'fs';
 
+export function activate(api, config, extensionPath) {
+  console.log('🟢 my-js extension activating');
+  const context = code.createExtensionContext({
+    api,
+    config,
+    extensionPath
+  });
 
-class MyJSExtension {
-  constructor({ api, config, extensionPath }) {
-    this.api = api;
-    this.config = config;
-    this.extensionPath = extensionPath;
-    this.context = createExtensionContext({ api, config, extensionPath });
-    this.state = {
-      executionCount: 0,
-      lastCommand: null,
-      isActive: true
-    };
-    console.log('[my-js] Extension instance created');
-  }
+  // Register a command
+  console.log('Registering my-js.hello command');
+  code.registerCommand(context, 'my-js.hello', () => {
+    
+    code.showProgress(context, 'MyJs', 'Hello, World!');
+    setTimeout(() => {
+      code.hideProgress(context); 
+      code.showNotification(context, {
+        title: 'MyJs',
+        message: 'Hello, World!',
+        type: 'success'
+      });
+    }, 10000);
+    return { status: 'success' };
+  }, {
+    title: 'MyJs',
+    description: 'A simple extension to demonstrate the extension handler',
+    category: 'MyJs'
+  });
 
-  async activate() {
-    console.log('[my-js] Extension activated');
-    
-    // Register Webview
-    this.registerWebview();
-    
-    // Register Activity Bar
-    this.registerActivityBar();
-    
-    // Register core commands
-    this.registerCoreCommands();
-    
-    // Register utility commands
-    this.registerUtilityCommands();
-    
-    // Register main menu
-    this.registerMainMenu();
-    
-    console.log('[my-js] Extension fully activated with all features');
-  }
+  // Register reload extensions command
+  console.log('Registering extensions.reload command');
+  code.registerCommand(context, 'extensions.reload', async () => {
+    code.showProgress(context, 'Extensions', 'Reloading extensions...');
+    try {
+      const result = await api.reloadExtensions();
+      code.hideProgress(context);
+      code.showNotification(context, {
+        title: 'Extensions',
+        message: `Reloaded ${result.count} extension(s)`,
+        type: 'success'
+      });
+      return result;
+    } catch (error) {
+      code.hideProgress(context);
+      code.showNotification(context, {
+        title: 'Extensions',
+        message: `Failed to reload: ${error.message}`,
+        type: 'error'
+      });
+      throw error;
+    }
+  }, {
+    title: 'Reload Extensions',
+    description: 'Reload all active extensions',
+    category: 'Extensions'
+  });
 
-  // ==================== Webview Integration ====================
-  registerWebview() {
-    const webviewContent = `
-      <div style="padding: 16px; background: #1e1e1e; color: #e0e0e0; font-family: 'Monaco', monospace; height: 100%; overflow-y: auto;">
-        <h2 style="color: #007acc; margin-top: 0;">JavaScript Tools Dashboard</h2>
+  // Register activity bar
+  console.log('🟢 Registering activity bar');
+  code.registerActivityBar(context, 'my-js', 'my-js', path.join(extensionPath, 'icon.svg'), 'MyJs', 'my-js.webview');
+  console.log('✅ Activity bar registration call completed');
+
+  // Register a custom menu
+  console.log('🟢 Registering custom menu');
+  code.registerMenu(context, {
+    id: 'my-js',
+    label: 'MyJs',
+    submenu: [
+      {
+        id: 'my-js.run-command',
+        label: 'Run Command',
+        accelerator: 'Ctrl+Shift+M'
+      },
+      {
+        id: 'my-js.open-settings',
+        label: 'Open Settings',
+        accelerator: 'Ctrl+Shift+,'
+      },
+      {
+        type: 'separator'
+      },
+      {
+        id: 'my-js.about',
+        label: 'About MyJs'
+      }
+    ]
+  });
+  console.log('✅ Menu registration call completed');
+
+  // Listen for menu item clicks via IPC
+  if (api.on) {
+    api.on('menu-item-clicked', (data) => {
+      console.log('Menu item clicked:', data.id);
+      
+      switch(data.id) {
+        case 'my-js.run-command':
+          console.log('MyJs: Run Command clicked');
+          code.showNotification(context, {
+            title: 'MyJs',
+            message: 'Run Command executed!',
+            type: 'success'
+          });
+          break;
         
-        <div style="margin-top: 20px;">
-          <h3 style="color: #4fc3f7; font-size: 14px;">Extension Statistics</h3>
-          <div style="background: #252526; padding: 12px; border-radius: 4px; margin-top: 8px;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-              <span>Commands Executed:</span>
-              <strong id="execCount">0</strong>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-              <span>Last Command:</span>
-              <strong id="lastCmd" style="color: #4ec9b0;">None</strong>
-            </div>
-            <div style="display: flex; justify-content: space-between;">
-              <span>Status:</span>
-              <strong id="status" style="color: #238636;">Active</strong>
-            </div>
-          </div>
-        </div>
+        case 'my-js.open-settings':
+          console.log('MyJs: Open Settings clicked');
+          code.showNotification(context, {
+            title: 'MyJs',
+            message: 'Opening settings...',
+            type: 'info'
+          });
+          break;
         
-        <div style="margin-top: 20px;">
-          <h3 style="color: #4fc3f7; font-size: 14px;">Quick Actions</h3>
-          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
-            <button onclick="alert('Format JS command executed')" style="padding: 8px 12px; background: #007acc; color: white; border: none; border-radius: 4px; cursor: pointer;">Format JavaScript</button>
-            <button onclick="alert('Code Analysis command executed')" style="padding: 8px 12px; background: #007acc; color: white; border: none; border-radius: 4px; cursor: pointer;">Analyze Code</button>
-            <button onclick="alert('Generate Docs command executed')" style="padding: 8px 12px; background: #007acc; color: white; border: none; border-radius: 4px; cursor: pointer;">Generate Docs</button>
-          </div>
-        </div>
-        
-        <div style="margin-top: 20px; padding: 12px; background: #252526; border-left: 3px solid #007acc; border-radius: 4px;">
-          <p style="margin: 0; font-size: 12px; color: #d4d4d4;">
-            This extension provides JavaScript development tools including code formatting, analysis, and documentation generation.
-          </p>
-        </div>
-      </div>
-    `;
-    
-    registerWebview(this.context, 'my-js.webview', 'JS Tools', webviewContent);
-    
-    console.log('[my-js] Webview registered');
-  }
-
-  // ==================== Activity Bar Integration ====================
-  registerActivityBar() {
-    const activityBar = {
-      id: 'my-js.activityBar',
-      ext: 'my-js',
-      title: 'JavaScript Tools',
-      items: [
-        {
-          id: 'my-js.formatCode',
-          label: 'Format Code',
-          command: 'my-js.formatCode'
-        },
-        {
-          id: 'my-js.analyzeCode',
-          label: 'Analyze Code',
-          command: 'my-js.analyzeCode'
-        },
-        {
-          id: 'my-js.generateDocs',
-          label: 'Generate Docs',
-          command: 'my-js.generateDocs'
-        }
-      ]
-    };
-    
-    registerActivityBar(this.context, activityBar);
-    
-    console.log('[my-js] Activity Bar registered');
-  }
-
-  // ==================== Core Commands ====================
-  registerCoreCommands() {
-    // Hello World command
-    registerCommand(this.context, 'my-js.helloWorld', async (args) => {
-      console.log('[my-js] helloWorld command executed', args);
-      this.updateState('helloWorld');
-      showNotification(this.context, 'my-js', 'Hello from JavaScript Extension!', 'info');
-      return { success: true, message: 'Hello World executed' };
-    });
-
-    // Format Code command
-    registerCommand(this.context, 'my-js.formatCode', async (args) => {
-      console.log('[my-js] formatCode command executed', args);
-      this.updateState('formatCode');
-      
-      const progress = showProgress(this.context, 'Formatting code...', true);
-      
-      // Simulate formatting
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      showNotification(this.context, 'my-js', 'Code formatted successfully', 'info');
-      return { success: true, message: 'Code formatted' };
-    });
-
-    // Analyze Code command
-    registerCommand(this.context, 'my-js.analyzeCode', async (args) => {
-      console.log('[my-js] analyzeCode command executed', args);
-      this.updateState('analyzeCode');
-      
-      const analysis = {
-        issues: 2,
-        warnings: 5,
-        score: 85,
-        timestamp: new Date().toISOString()
-      };
-      
-      showNotification(this.context, 'my-js', `Analysis Complete: ${analysis.issues} issues, ${analysis.warnings} warnings`, 'info');
-      return { success: true, data: analysis };
-    });
-
-    // Generate Documentation command
-    registerCommand(this.context, 'my-js.generateDocs', async (args) => {
-      console.log('[my-js] generateDocs command executed', args);
-      this.updateState('generateDocs');
-      
-      const progress = showProgress(this.context, 'Generating documentation...', true);
-      
-      // Simulate generation
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      showNotification(this.context, 'my-js', 'Documentation generated successfully', 'info');
-      return { success: true, message: 'Documentation created' };
-    });
-  }
-
-  // ==================== Utility Commands ====================
-  registerUtilityCommands() {
-    // Get System Info command
-    registerCommand(this.context, 'my-js.getSystemInfo', async (args) => {
-      console.log('[my-js] getSystemInfo command executed');
-      this.updateState('getSystemInfo');
-      
-      try {
-        const systemInfo = getSystemInfo();
-        console.log('[my-js] System info retrieved:', systemInfo);
-        return { success: true, data: systemInfo };
-      } catch (error) {
-        console.error('[my-js] Failed to get system info:', error);
-        return { success: false, error: error.message };
+        case 'my-js.about':
+          console.log('MyJs: About clicked');
+          code.showNotification(context, {
+            title: 'MyJs Extension',
+            message: 'A simple extension to demonstrate the extension handler. Version: ' + config.version,
+            type: 'info'
+          });
+          break;
       }
     });
-
-    // Show Quick Pick command
-    registerCommand(this.context, 'my-js.showQuickPick', async (args) => {
-      console.log('[my-js] showQuickPick command executed');
-      this.updateState('showQuickPick');
-      
-      const items = [
-        { label: 'Format Code', value: '1', description: 'Auto-format JavaScript code' },
-        { label: 'Analyze Code', value: '2', description: 'Analyze code for issues' },
-        { label: 'Generate Docs', value: '3', description: 'Generate JSDoc documentation' }
-      ];
-      
-      showQuickPick(this.context, items, this.handleQuickPickSelection.bind(this));
-      return { success: true };
-    });
-
-    // Extension Status command
-    registerCommand(this.context, 'my-js.status', async (args) => {
-      console.log('[my-js] status command executed');
-      const status = {
-        active: this.state.isActive,
-        executionCount: this.state.executionCount,
-        lastCommand: this.state.lastCommand,
-        version: '1.0.0'
-      };
-      console.log('[my-js] Status:', status);
-      return { success: true, data: status };
-    });
   }
 
-  // ==================== Menu Registration ====================
-  registerMainMenu() {
-    registerMenu(this.context, {
-      id: 'my-js.mainMenu',
-      label: 'JavaScript Tools',
-      icon: 'circle',
-      submenu: [
-        {
-          id: 'my-js.formatCode',
-          type: 'button',
-          label: 'Format Code',
-          command: 'my-js.formatCode',
-          icon: 'indent'
-        },
-        {
-          id: 'my-js.analyzeCode',
-          type: 'button',
-          label: 'Analyze Code',
-          command: 'my-js.analyzeCode',
-          icon: 'search'
-        },
-        {
-          id: 'my-js.generateDocs',
-          type: 'button',
-          label: 'Generate Documentation',
-          command: 'my-js.generateDocs',
-          icon: 'file'
-        },
-        {
-          id: 'my-js.separator1',
-          type: 'separator'
-        },
-        {
-          id: 'my-js.quickPick',
-          type: 'button',
-          label: 'Quick Actions',
-          command: 'my-js.showQuickPick',
-          icon: 'zap'
-        },
-        {
-          id: 'my-js.status',
-          type: 'button',
-          label: 'Show Status',
-          command: 'my-js.status',
-          icon: 'info'
-        }
-      ]
-    });
-  }
-
-  // ==================== Utility Methods ====================
-  updateState(commandName) {
-    this.state.executionCount++;
-    this.state.lastCommand = commandName;
-    console.log(`[my-js] State updated: ${commandName} (Count: ${this.state.executionCount})`);
-  }
-
-  handleQuickPickSelection(selectedItem) {
-    console.log('[my-js] Handling selection:', selectedItem);
-    
-    const messages = {
-      '1': 'Starting code formatting...',
-      '2': 'Starting code analysis...',
-      '3': 'Starting documentation generation...'
-    };
-    
-    const message = messages[selectedItem.value] || 'Action selected';
-    showNotification(this.context, 'my-js', message, 'info');
-  }
-
-  deactivate() {
-    console.log('[my-js] Extension deactivating');
-    this.state.isActive = false;
-    removeWebview(this.context, 'my-js.webview');
-    console.log('[my-js] Extension deactivated');
+  // Load and register webview
+  try {
+    const webviewPath = path.join(String(extensionPath).replace('index.js', ''), 'webview.html');
+    if (fs.existsSync(webviewPath)) {
+      code.showNotification(context, {
+        title: 'MyJs',
+        message: 'Webview loaded successfully!',
+        type: 'success'
+      });
+      const htmlContent = fs.readFileSync(webviewPath, 'utf8');
+      code.registerWebview(context, 'my-js.webview', 'MyJs Webview', htmlContent);
+      console.log('Webview registered successfully');
+    } else {
+      console.warn(`Webview file not found at: ${webviewPath}`);
+    }
+  } catch (error) {
+    console.error('Failed to load webview:', error.message);
   }
 }
 
-export default MyJSExtension;
-
+export function deactivate() {
+  // Cleanup code here if needed
+}

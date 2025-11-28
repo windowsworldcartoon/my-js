@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My JS Extension</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+        
+        .section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section h2 {
+            color: #34495e;
+            font-size: 18px;
+            margin-bottom: 12px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 8px;
+        }
+        
+        .section p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-right: 8px;
+            margin-top: 12px;
+        }
+        
+        button:hover {
+            background: #2980b9;
+        }
+        
+        .info-box {
+            background: #ecf0f1;
+            border-left: 4px solid #3498db;
+            padding: 12px;
+            margin-top: 10px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        
+        code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #c7254e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>My JS Extension</h1>
+        
+        <div class="section">
+            <h2>Welcome</h2>
+            <p>This is the webview panel for the My JS extension.</p>
+            <p>You can display custom HTML content and interact with the extension through this panel.</p>
+        </div>
+        
+        <div class="section">
+            <h2>Quick Actions</h2>
+            <button onclick="handleAction('action1')">Action 1</button>
+            <button onclick="handleAction('action2')">Action 2</button>
+            <button onclick="handleAction('action3')">Action 3</button>
+            <div class="info-box">
+                Click the buttons above to trigger extension actions
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Extension Info</h2>
+            <p>
+                <strong>ID:</strong> <code>my-js</code><br>
+                <strong>Type:</strong> <code>JavaScript</code><br>
+                <strong>Status:</strong> <span id="status" style="color: #27ae60; font-weight: bold;">Active</span>
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        function handleAction(actionName) {
+            console.log(`Action triggered: ${actionName}`);
+            alert(`Action "${actionName}" was triggered!`);
+        }
+        
+        // Initialize webview
+        console.log('My JS Extension webview loaded');
+    </script>
+</body>
+</html>

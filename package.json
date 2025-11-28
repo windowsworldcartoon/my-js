@@ -4,8 +4,5 @@
   "description": "my-js extension for CodeInspector",
   "main": "index.js",
   "type": "module",
-  "author": "windowsworldcartoon",
-  "dependencies": {
-    "@windowsworldcartoon/codeinspector-extension-handler": "1.2.0"
-  }
+  "author": "windowsworldcartoon"
 }
